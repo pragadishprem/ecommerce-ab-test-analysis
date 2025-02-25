@@ -1,0 +1,17 @@
+-- Create the database if it doesn't exist
+CREATE DATABASE IF NOT EXISTS ecom_ab_test;
+
+-- Select the database
+USE ecom_ab_test;
+
+-- Drop the table if it exists
+DROP TABLE IF EXISTS orders;
+
+-- Create the orders table with a test_variant column
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    order_date DATE,
+    order_value DECIMAL(10, 2),
+    test_variant VARCHAR(1)
+);
