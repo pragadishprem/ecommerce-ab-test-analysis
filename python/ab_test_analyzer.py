@@ -2,27 +2,21 @@ import pandas as pd
 from scipy import stats
 import os
 
-def analyze_ab_test_from_separate_csvs(csv_file_a, csv_file_b):
+def analyze_ab_test_from_separate_csvs(csv_url_a, csv_url_b):
     """
     Performs A/B testing analysis on order values from two separate CSV files,
     handling different file paths and column name variations.
 
     Args:
-        csv_file_a (str): Path to the CSV file containing order values for Variant A.
-        csv_file_b (str): Path to the CSV file containing order values for Variant B.
+        csv_url_a (str): URL to the CSV file containing order values for Variant A.
+        csv_url_b (str): URL to the CSV file containing order values for Variant B.
     """
 
     try:
         # 1. Load the CSV files into Pandas DataFrames
-        df_a = pd.read_csv(csv_file_a)
-        df_b = pd.read_csv(csv_file_b)
+        df_a = pd.read_csv(csv_url_a)
+        df_b = pd.read_csv(csv_url_b)
 
-    except FileNotFoundError as e:
-        print(f"Error: One or more CSV files not found: {e}")
-        return
-    except pd.errors.EmptyDataError as e:
-        print(f"Error: One or more CSV files are empty: {e}")
-        return
     except Exception as e:
         print(f"Error reading CSV: {e}")
         return
@@ -41,11 +35,11 @@ def analyze_ab_test_from_separate_csvs(csv_file_a, csv_file_b):
             break
 
     if not order_value_col_a:
-        print(f"Error: Could not find a valid order value column in {csv_file_a}. Checked for order_value, order_value_a, value, and OrderTotal")
+        print(f"Error: Could not find a valid order value column in {csv_url_a}. Checked for order_value, order_value_a, value, and OrderTotal")
         return
 
     if not order_value_col_b:
-        print(f"Error: Could not find a valid order value column in {csv_file_b}. Checked for order_value, order_value_b, value, and OrderTotal")
+        print(f"Error: Could not find a valid order value column in {csv_url_b}. Checked for order_value, order_value_b, value, and OrderTotal")
         return
 
     # 3. Extract Order Values from Each DataFrame using auto-detected column names
@@ -73,24 +67,22 @@ def analyze_ab_test_from_separate_csvs(csv_file_a, csv_file_b):
     if p_value <= alpha:
         print("\nThe difference in AOV is statistically significant.")
         if aov_b > aov_a:
-            print("Variant B (the promotional campaign) had a significantly higher AOV.")
+            print(f"Variant B (the promotional campaign) had a significantly higher AOV (AOV_A = {aov_a:.2f}, AOV_B = {aov_b:.2f}, p-value = {p_value:.3f})."
+                  f" We reject the null hypothesis. This suggests that the promotional campaign had a positive impact on AOV.")
         else:
-            print("Variant A had a significantly higher AOV (unexpected).")
+            print(f"Variant A had a significantly higher AOV (unexpected)(AOV_A = {aov_a:.2f}, AOV_B = {aov_b:.2f}, p-value = {p_value:.3f})."
+                  f"We reject the null hypothesis. Further investigation needed")
     else:
-        print("\nThe difference in AOV is not statistically significant.")
-        print("We cannot conclude that the promotional campaign had a significant impact on AOV.")
+        print(f"\nThe difference in AOV is not statistically significant (p-value = {p_value:.3f})."
+              f" We fail to reject the null hypothesis. We cannot conclude that the promotional campaign had a significant impact on AOV.")
+        if aov_b > aov_a:
+            print("Variant B (the promotional campaign) had a higher AOV although not statistically significant, so there is some evidence of improvement.")
+        else:
+            print("Variant A performed higher than Variant B (unexpected)")
 
 if __name__ == "__main__":
-    # Example Usage (Replace with your actual file paths)
+    # Replace with the Raw URLs from your GitHub repository:
+    csv_url_a = "https://raw.githubusercontent.com/pragadishprem/ecommerce-ab-test-analysis/main/data/variant_a_order_values.csv"
+    csv_url_b = "https://raw.githubusercontent.com/pragadishprem/ecommerce-ab-test-analysis/main/data/variant_b_order_values.csv"
 
-    # Use raw strings to handle backslashes correctly on Windows
-    csv_file_a = r"C:\Users\praga\OneDrive\Documents\Projects\ecommerce-ab-test-analysis\data\variant_a_order_values.csv"
-    csv_file_b = r"C:\Users\praga\OneDrive\Documents\Projects\ecommerce-ab-test-analysis\data\variant_b_order_values.csv"
-
-    # Check if the files exist
-    if not os.path.exists(csv_file_a):
-        print(f"Error: File not found: {csv_file_a}")
-    elif not os.path.exists(csv_file_b):
-        print(f"Error: File not found: {csv_file_b}")
-    else:
-        analyze_ab_test_from_separate_csvs(csv_file_a, csv_file_b)
+    analyze_ab_test_from_separate_csvs(csv_url_a, csv_url_b)
